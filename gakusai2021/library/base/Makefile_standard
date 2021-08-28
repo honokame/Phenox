@@ -1,0 +1,24 @@
+TOPDIR = ../
+-include $(TOPDIR)/include.mk
+
+SRCS_C = $(wildcard *.c) 
+OBJS_C = $(SRCS_C:.c=.o)
+HEADERS_C = $(SRCS_C:.c=.h) 
+
+SRCS_CPP = $(wildcard *.cpp) 
+OBJS_CPP = $(SRCS_CPP:.cpp=.o)
+HEADERS_CPP = $(SRCS_CPP:.cpp=.h) 
+
+.PHONY: all clean
+all: $(OBJS_C) $(OBJS_CPP)
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c -o $@ $<
+	cp -f $@ $(OBJDIR)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+	cp -f $@ $(OBJDIR)
+
+clean:
+	rm -rf $(OBJS_C) $(OBJS_CPP)
+
