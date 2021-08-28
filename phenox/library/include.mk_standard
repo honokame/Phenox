@@ -1,0 +1,5 @@
+HEADDIR = $(TOPDIR)/headers
+OBJDIR = $(TOPDIR)/objs
+CC = gcc
+CFLAGS = -I $(HEADDIR) -g -O2 `pkg-config --cflags opencv`
+
