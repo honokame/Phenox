@@ -44,7 +44,7 @@ static char timer_disable = 0;
 static void timerhandler(int i);
 static void setup_timer();
 
-const px_cameraid cameraid = PX_FRONT_CAM;
+const px_cameraid cameraid = PX_BOTTOM_CAM;
 const int ftmax = 200;
 const int imgcount_max = 10;
 const float recordtime = 5.0;
@@ -52,6 +52,7 @@ const float recordtime = 5.0;
 int main(int argc, char **argv)
 {
   int i;
+  //int end;
   pxinit_chain();
   set_parameter();
    
@@ -93,7 +94,7 @@ int main(int argc, char **argv)
 	  cvLine(copyImage,cvPoint((int)ft[i].pcx,(int)ft[i].pcy),cvPoint((int)ft[i].cx,(int)ft[i].cy),CV_RGB(0,0,255),1,8,0);
 	}
 	char name[100]={0};       
-	sprintf(name,"./image_%d.png",imgcount++);	  
+	sprintf(name,"../image/red/image_%d.png",imgcount++);	  
 	cvSaveImage(name,copyImage,0);
 	printf("CPU0:saved image %d/%d\n",imgcount,imgcount_max);      
       }
@@ -119,9 +120,11 @@ int main(int argc, char **argv)
   fclose(fp);
 
   printf("CPU0:waiting for whisle sound\n");
-  pxset_whisle_detect_reset();  
-  while(pxget_whisle_detect() == 0);
-  
+  //pxset_whisle_detect_reset();  
+  //while(pxget_whisle_detect() == 0);
+  //end = getchar();
+  //printf("%d\n",end); 
+  while(getchar() == 113);
   printf("Exit Tutorial\n");  
 }
 
