@@ -45,21 +45,26 @@ static void timerhandler(int i);
 static void setup_timer();
 static int ftnum = 0;
 const int ftmax = 200;
-
+static int once = 0;
 
 const px_cameraid cameraid = PX_BOTTOM_CAM;
 
+//configurable parameter by user
+static float dst_tx = 0;
+static float dst_ty = 300;
+static float speed_tx = 50;
+static float speed_ty = 50;
+
 int main(int argc, char **argv)
 {
-  pxinit_chain(); // パラメータの初期化 
-  set_parameter(); // パラメータの設定、parameter.c
+  pxinit_chain();
+  set_parameter();
    
   printf("CPU0:Start Initialization. Please do not move Phenox.\n");
-  while(!pxget_cpu1ready()); // cpu1の準備ができたら1を返す
+  while(!pxget_cpu1ready());
   setup_timer();
   printf("CPU0:Finished Initialization.\n");
 
- // 画像特徴点を取得
   px_imgfeature *ft =(px_imgfeature *)calloc(ftmax,sizeof(px_imgfeature));
   int ftstate = 0;
 
@@ -104,7 +109,6 @@ static void setup_timer() {
   }
 }
 
-// タイマー割り込み
 void timerhandler(int i) {
   char c;  
 
@@ -112,56 +116,95 @@ void timerhandler(int i) {
     return;
   }
 
-  pxset_keepalive(); // cpuがアプリケーション実行中であるとcpu1に伝える
-  pxset_systemlog(); // systemlog.txtにログを書き込む
+  pxset_keepalive();
+  pxset_systemlog();
   
-  px_selfstate st; // px_selfstateは機体の状態の一覧
-  pxget_selfstate(&st); // 機体の状態の一覧を取得
+  px_selfstate st;
+  pxget_selfstate(&st);
   
   static unsigned long msec_cnt = 0;
   msec_cnt++;
   if(!(msec_cnt % 3)){
-    // 機体の傾き、機体軸に対する移動量、高度、特徴点の個数を出力
-    // 消しても良い
     printf("%.2f %.2f %.2f | %.2f %.2f %.2f | %.2f | %d\n",st.degx,st.degy,st.degz,st.vision_tx,st.vision_ty,st.vision_tz,st.height,ftnum);
   } 
 
-  static int prev_operatemode = PX_HALT; //停止状態
-  
-  // 前：上昇でホバー状態の時
+  static int time_start = 0;
+  static float origin_tx = 0;
+  static float origin_ty = 0;
+  static float start_tx = 0;
+  static float start_ty = 0;
+  static int mfin_tx = 0;
+  static int mfin_ty = 0;
+
+  static int prev_operatemode = PX_HALT;
   if((prev_operatemode == PX_UP) && (pxget_operate_mode() == PX_HOVER)) {
-    pxset_visioncontrol_xy(st.vision_tx,st.vision_ty); // 初期位置を追従、元の位置で飛行
+    origin_tx = st.vision_tx;
+    origin_ty = st.vision_ty;
+    pxset_visioncontrol_xy(origin_tx,origin_ty);
+    time_start = 1;
   }
   prev_operatemode = pxget_operate_mode();  
-  /*
-  int key_flag = 0;
-  if(getchar() == 113){
-    key_flag = 1;
-  }*/
-  // 笛の音を検出したら（＝１）
+
+
+  static int time = 0;
+  if(time == 800) {    
+    start_tx = st.vision_tx;
+    start_ty = st.vision_ty;
+    time++;
+  }
+  else if(time == 801) {
+    float pos_tx = st.vision_tx - start_tx;
+    float pos_ty = st.vision_ty - start_ty;
+    float dist_tx = dst_tx - pos_tx; 
+    float dist_ty = dst_ty - pos_ty; 
+    float sign_tx = (dist_tx > 0)? 1:-1;
+    float sign_ty = (dist_ty > 0)? 1:-1;
+    float input_tx,input_ty;
+    if(mfin_tx == 1) {
+      input_tx = dist_tx;
+    }
+    else if(fabs(dist_tx) < speed_tx) {
+      mfin_tx = 1;
+    }
+    else {
+      input_tx = speed_tx*sign_tx;      
+    }
+
+    if(mfin_ty == 1) {
+      input_ty = dist_ty;
+    }
+    else if(fabs(dist_ty) < speed_ty) {
+      mfin_ty = 1;
+    }
+    else {
+      input_ty = speed_ty*sign_ty;      
+    }
+
+    pxset_visioncontrol_xy(origin_tx+pos_tx+input_tx,origin_ty+pos_ty+input_ty);
+  }
+  else if(time_start == 1) {
+    time++;
+  }
+
+
   if(pxget_whisle_detect() == 1) {
-  //if(getchar() == 113){ // キーボードのq,a=97
-  //if(key_flag == 1){
-    // ホバー状態の時
     if(pxget_operate_mode() == PX_HOVER) {
-      pxset_operate_mode(PX_DOWN); // 下降状態に設定→停止状態に遷移
+      pxset_operate_mode(PX_DOWN);
       printf("CPU0:whisle sound detected. Going down.\n");
     }      
-    // 停止状態のとき
-    else if(pxget_operate_mode() == PX_HALT) {
-      pxset_rangecontrol_z(120); // 高さ120まで上昇
-      pxset_operate_mode(PX_UP); // 上昇状態に設定→ホバー状態に遷移		   
+    else if((pxget_operate_mode() == PX_HALT) && (once == 0)) {
+      pxset_rangecontrol_z(120);
+      pxset_operate_mode(PX_UP);
+      once = 1; 
     }      
   }
 
- // バッテリーの残量が少ないときに1を返す　
   if(pxget_battery() == 1) {
     timer_disable = 1;
     system("shutdown -h now\n");   
     exit(1);
   }
 
-  printf("%d\n",prev_operatemode);
   
   return;
 }
