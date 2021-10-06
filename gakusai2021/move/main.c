@@ -133,10 +133,15 @@ void timerhandler(int i) {
     pxset_visioncontrol_xy(st.vision_tx,st.vision_ty); // 初期位置を追従、元の位置で飛行
   }
   prev_operatemode = pxget_operate_mode();  
-
+  /*
+  int key_flag = 0;
+  if(getchar() == 113){
+    key_flag = 1;
+  }*/
   // 笛の音を検出したら（＝１）
-  //if(pxget_whisle_detect() == 1) {
-  if(getchar() == 113){ // キーボードのq,a=97
+  if(pxget_whisle_detect() == 1) {
+  //if(getchar() == 113){ // キーボードのq,a=97
+  //if(key_flag == 1){
     // ホバー状態の時
     if(pxget_operate_mode() == PX_HOVER) {
       pxset_operate_mode(PX_DOWN); // 下降状態に設定→停止状態に遷移
