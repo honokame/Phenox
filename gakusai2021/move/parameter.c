@@ -20,8 +20,8 @@ void set_parameter() {
   param.dgain_vision_ty = 0.20;
   param.whisleborder = 180;
   param.soundborder = 1000;
-  param.uptime_max = 1.2;
-  param.downtime_max = 3.0;
+  param.uptime_max = 1.2; // 上昇状態→ホバー状態までの時間
+  param.downtime_max = 3.0; // 下降状態→停止状態までの時間 
   param.dangz_rotspeed = 15.0;  
   param.featurecontrast_front = 35;
   param.featurecontrast_bottom = 30;
