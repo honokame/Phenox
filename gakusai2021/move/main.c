@@ -83,11 +83,14 @@ static void setup_timer() {
   struct sigaction action;
   struct itimerval timer;
   
-  memset(&action, 0, sizeof(action));
-    
-  action.sa_handler = timerhandler;
-  action.sa_flags = SA_RESTART;
-  sigemptyset(&action.sa_mask);
+  // SIGINT受信時にtimerhandlerを実行
+  memset(&action, 0, sizeof(action)); // actionに0を代入  
+  action.sa_handler = timerhandler; //シグナルハンドラ
+  action.sa_flags = SA_RESTART; // シグナルにより中断されたシステムコールの処理は再開する
+  sigemptyset(&action.sa_mask); // 初期化
+
+  // シグナルを設定
+  // (標準シグナル,sigactionのアドレス,古いアクション)、失敗すれば-1を返す
   if(sigaction(SIGALRM, &action, NULL) < 0){
     perror("sigaction error");
     exit(1);
@@ -104,7 +107,7 @@ static void setup_timer() {
   }
 }
 
-// タイマー割り込み
+// シグナルハンドラ（タイマー割り込み）
 void timerhandler(int i) {
   char c;  
 
