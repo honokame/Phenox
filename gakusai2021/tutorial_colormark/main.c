@@ -47,12 +47,49 @@ static void setup_timer();
 const px_cameraid cameraid = PX_BOTTOM_CAM;
 
 //configurable parameter by user
+//red 
+//original
+static int min_y = 0;
+static int max_y = 255;
+static int min_u = -127;
+static int max_u = -3;
+static int min_v = 28;
+static int max_v = 127;
+
+//2016
+static int min_y = 75;
+static int max_y = 115
+static int min_u = -30
+static int max_u = 10;
+static int min_v = 15;
+static int max_v = 70
+
+//blue
+//original
+static int min_y = -11;
+static int max_y = 255;
+static int min_u = 30;
+static int max_u = 127;
+static int min_v = -127;
+static int max_v = -10;
+
+//2016
+static int min_y = 50
+static int max_y = 100
+static int min_u = 20
+static int max_u = 64
+static int min_v = -100
+static int max_v = 0
+
+//green
+//original
 static int min_y = 0;
 static int max_y = 255;
 static int min_u = -127;
 static int max_u = -3;
 static int min_v = -127;
 static int max_v = -3;
+
 static float bias_x = 0;//from -100 to 100
 static float bias_y = 0;//from -100 to 100 
 
