@@ -43,20 +43,23 @@ THE SOFTWARE.
 static char timer_disable = 0;
 static void timerhandler(int i);
 static void setup_timer();
+void colorchange(int *min_y,int *max_y,int *min_u,int *max_u,int 
+*min_v,int *max_v);
 static int ftnum = 0; // 特徴点の個数
 const int ftmax = 200;
+static int count = 0;
 
 const px_cameraid cameraid = PX_BOTTOM_CAM;
 
 // 色のパラメータ
 //red 
 static int min_y = 75;
-static int max_y = 145
+static int max_y = 110;
 static int min_u = -40;
 static int max_u = 10;
 static int min_v = 15;
 static int max_v = 70;
-
+/*
 //blue
 static int min_y = 50;
 static int max_y = 100;
@@ -72,7 +75,7 @@ static int min_u = -127;
 static int max_u = 0;
 static int min_v = -127;
 static int max_v = 0;
-
+*/
 static float bias_x = 0;//from -100 to 100
 static float bias_y = 0;//from -100 to 100 
 
@@ -158,17 +161,39 @@ void timerhandler(int i) {
   static unsigned long msec_cnt = 0;
   msec_cnt++;
   
+  // 3msに1回
   if(!(msec_cnt % 3)){
     // 機体の傾き、現在の自己位置、高度、特徴点の個数を出力
     //printf("%.2f %.2f %.2f | %.2f %.2f %.2f | %.2f | %d\n",st.degx,st.degy,st.degz,st.vision_tx,st.vision_ty,st.vision_tz,st.height,ftnum);
-        
-  } 
-
+    float blobx,bloby,blobsize;
+    int ret = pxget_blobmark(&blobx,&bloby,&blobsize); // 重心とピクセル数が書き込まれる
+    if(ret == 1) {    
+      pxset_blobmark_query(1,min_y,max_y,min_u,max_u,min_v,max_v); // 指定した色のピクセル数と重心を求める要求
+      if(blobsize > 12) {
+        printf("mark is found at (%.0f %.0f)\n",blobx,bloby); 
+        pxset_visualselfposition(-blobx,-bloby); 
+      }
+    }  
+    count++;   
+  
+  if(count == 10){
+    colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
+    printf("%d\n",min_y);
+  }else if(count == 20) {
+    colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
+    printf("%d\n",min_y);
+  }else if(count == 30) {
+    colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
+    printf("%d\n",min_y);
+    count = 0;
+  }
+}
   //static int prev_operatemode = PX_HALT; //停止状態
   
   // 上昇→ホバー状態の時
   if((prev_operatemode == PX_UP) && (pxget_operate_mode() == PX_HOVER)) {
     pxset_visioncontrol_xy(st.vision_tx,st.vision_ty); // 自己位置を追従、元の位置で飛行
+    //pxset_visioncontrol_xy(bias_x,bias_y); // マーカーの位置まで飛行
   }
   prev_operatemode = pxget_operate_mode();  
   
@@ -181,6 +206,7 @@ void timerhandler(int i) {
     }      
     // 停止状態のとき、初めの状態
     else if(pxget_operate_mode() == PX_HALT) {
+      //pxset_visualselfposition(0,0); // 自己位置を原点に設定
       pxset_rangecontrol_z(120); // 高さ120を目標に設定
       pxset_operate_mode(PX_UP); // 上昇状態→1.2秒後ホバー状態に遷移		   
     }      
@@ -192,8 +218,39 @@ void timerhandler(int i) {
     system("shutdown -h now\n");   
     exit(1);
   }
-
-  printf("%d\n",prev_operatemode);
-  
   return;
+}
+
+void colorchange(int *min_y,int *max_y,int *min_u,int *max_u,int *min_v,int *max_v) {
+  switch(count / 10) {
+    case 1:
+      *min_y = 75;
+      *max_y = 110;
+      *min_u = -40;
+      *max_u = 10;
+      *min_v = 15;
+      *max_v = 70;
+      break;
+
+    case 2:
+      *min_y = 50;
+      *max_y = 100;
+      *min_u = 0;
+      *max_u = 74;
+      *min_v = -100;
+      *max_v = 0;
+      break;
+
+    case 3:
+      *min_y = 0;
+      *max_y = 255;
+      *min_u = -127;
+      *max_u = 0;
+      *min_v = -127;
+      *max_v = 0;
+      break;
+
+    default:
+      break;
+  }
 }
