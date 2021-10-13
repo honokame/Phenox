@@ -48,6 +48,34 @@ const int ftmax = 200;
 
 const px_cameraid cameraid = PX_BOTTOM_CAM;
 
+// 色のパラメータ
+//red 
+static int min_y = 75;
+static int max_y = 145
+static int min_u = -40;
+static int max_u = 10;
+static int min_v = 15;
+static int max_v = 70;
+
+//blue
+static int min_y = 50;
+static int max_y = 100;
+static int min_u = 0;
+static int max_u = 64;
+static int min_v = -100;
+static int max_v = 0;
+
+//green
+static int min_y = 0;
+static int max_y = 255;
+static int min_u = -127;
+static int max_u = 0;
+static int min_v = -127;
+static int max_v = 0;
+
+static float bias_x = 0;//from -100 to 100
+static float bias_y = 0;//from -100 to 100 
+
 int main(int argc, char **argv) {
   pxinit_chain(); // パラメータの初期化 
   set_parameter(); // パラメータの設定、parameter.c
@@ -133,7 +161,7 @@ void timerhandler(int i) {
   if(!(msec_cnt % 3)){
     // 機体の傾き、現在の自己位置、高度、特徴点の個数を出力
     //printf("%.2f %.2f %.2f | %.2f %.2f %.2f | %.2f | %d\n",st.degx,st.degy,st.degz,st.vision_tx,st.vision_ty,st.vision_tz,st.height,ftnum);
-    printf("%d\n",prev_operatemode);
+        
   } 
 
   //static int prev_operatemode = PX_HALT; //停止状態
