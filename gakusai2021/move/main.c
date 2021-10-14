@@ -48,7 +48,10 @@ void colorchange(int *min_y,int *max_y,int *min_u,int *max_u,int
 static int ftnum = 0; // 特徴点の個数
 const int ftmax = 200;
 static int count = 0;
-
+static int flag = 0;
+static int flag_red = 0;
+static int flag_blue = 0;
+static int flag_green = 0;
 const px_cameraid cameraid = PX_BOTTOM_CAM;
 
 // 色のパラメータ
@@ -171,21 +174,41 @@ void timerhandler(int i) {
       pxset_blobmark_query(1,min_y,max_y,min_u,max_u,min_v,max_v); // 指定した色のピクセル数と重心を求める要求
       if(blobsize > 12) {
         printf("mark is found at (%.0f %.0f)\n",blobx,bloby); 
-        pxset_visualselfposition(-blobx,-bloby); 
+        pxset_visualselfposition(-blobx,-bloby);
+        flag++; 
       }
     }  
-    count++;   
+  count++;    
   
+  // 10回色を検知するごとに切り替える、赤→青→緑
   if(count == 10){
+    //colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
+    //printf("red\n");
+    if(flag > 6){
+      printf("red detected\n");
+      flag_red = 1;
+    }
     colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
-    printf("%d\n",min_y);
+    flag = 0;
   }else if(count == 20) {
+    //colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
+    //printf("blue\n"); 
+    if(flag > 6){
+      printf("blue detected\n");
+      flag_blue = 1;
+    } 
     colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
-    printf("%d\n",min_y);
+    flag = 0;
   }else if(count == 30) {
+    //colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
+    //printf("green\n"); 
+    if(flag > 6){
+      printf("green detected\n");
+      flag_green = 1;
+    }
     colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
-    printf("%d\n",min_y);
-    count = 0;
+    flag = 0;
+    count = 0; // カウンターをリセット
   }
 }
   //static int prev_operatemode = PX_HALT; //停止状態
@@ -221,9 +244,11 @@ void timerhandler(int i) {
   return;
 }
 
+// YUV値の切り替え
 void colorchange(int *min_y,int *max_y,int *min_u,int *max_u,int *min_v,int *max_v) {
   switch(count / 10) {
-    case 1:
+    case 3: // red
+      printf("red\n");
       *min_y = 75;
       *max_y = 110;
       *min_u = -40;
@@ -232,7 +257,8 @@ void colorchange(int *min_y,int *max_y,int *min_u,int *max_u,int *min_v,int *max
       *max_v = 70;
       break;
 
-    case 2:
+    case 1: // blue
+      printf("blue\n");
       *min_y = 50;
       *max_y = 100;
       *min_u = 0;
@@ -241,7 +267,8 @@ void colorchange(int *min_y,int *max_y,int *min_u,int *max_u,int *min_v,int *max
       *max_v = 0;
       break;
 
-    case 3:
+    case 2: // green
+      printf("green\n");
       *min_y = 0;
       *max_y = 255;
       *min_u = -127;
