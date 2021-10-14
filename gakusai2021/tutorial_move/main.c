@@ -51,7 +51,7 @@ const px_cameraid cameraid = PX_BOTTOM_CAM;
 
 //configurable parameter by user
 static float dst_tx = 0;
-static float dst_ty = 300;
+static float dst_ty = 300; // 1.5m=150cm、1cmあたり2
 static float speed_tx = 50;
 static float speed_ty = 50;
 
@@ -138,36 +138,35 @@ void timerhandler(int i) {
 
   static int prev_operatemode = PX_HALT;
   if((prev_operatemode == PX_UP) && (pxget_operate_mode() == PX_HOVER)) {
-    origin_tx = st.vision_tx;
+    origin_tx = st.vision_tx; // 現在位置
     origin_ty = st.vision_ty;
-    pxset_visioncontrol_xy(origin_tx,origin_ty);
+    pxset_visioncontrol_xy(origin_tx,origin_ty); // 現在位置でホバー状態
     time_start = 1;
   }
   prev_operatemode = pxget_operate_mode();  
 
-
   static int time = 0;
-  if(time == 800) {    
-    start_tx = st.vision_tx;
+  if(time == 800) {  // 8秒間
+    start_tx = st.vision_tx; // 原点でホバー状態
     start_ty = st.vision_ty;
     time++;
   }
-  else if(time == 801) {
-    float pos_tx = st.vision_tx - start_tx;
+  else if(time == 801) {  // 8秒後
+    float pos_tx = st.vision_tx - start_tx; // 現在地の更新
     float pos_ty = st.vision_ty - start_ty;
-    float dist_tx = dst_tx - pos_tx; 
+    float dist_tx = dst_tx - pos_tx; // 目標値までの距離
     float dist_ty = dst_ty - pos_ty; 
-    float sign_tx = (dist_tx > 0)? 1:-1;
+    float sign_tx = (dist_tx > 0)? 1:-1; // 目標値がまだなら1、超えたら-1
     float sign_ty = (dist_ty > 0)? 1:-1;
     float input_tx,input_ty;
     if(mfin_tx == 1) {
-      input_tx = dist_tx;
+      input_tx = dist_tx; // 50より小さい
     }
-    else if(fabs(dist_tx) < speed_tx) {
+    else if(fabs(dist_tx) < speed_tx) { // fabs：絶対値、目標値まで50(25cm)より小さい
       mfin_tx = 1;
     }
-    else {
-      input_tx = speed_tx*sign_tx;      
+    else { // 目標値まで25cm以上ある
+      input_tx = speed_tx*sign_tx; // 50*1 or 50*-1
     }
 
     if(mfin_ty == 1) {
@@ -179,9 +178,11 @@ void timerhandler(int i) {
     else {
       input_ty = speed_ty*sign_ty;      
     }
-
+    // 目標値まで近いとき：元の位置＋現在地＋目標値までの距離
+    // 目標値まで遠いとき：元の位置＋現在地＋50(25cm)
     pxset_visioncontrol_xy(origin_tx+pos_tx+input_tx,origin_ty+pos_ty+input_ty);
   }
+  // タイマースタート
   else if(time_start == 1) {
     time++;
   }
