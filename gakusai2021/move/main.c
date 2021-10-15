@@ -162,6 +162,12 @@ void timerhandler(int i) {
   
   static int prev_operatemode = PX_HALT; // 停止状態 
   static unsigned long msec_cnt = 0;
+  static float x[10];
+  static float y[10];
+  static int j = 0;
+  static int k = 0;
+  static float red_x = 0;
+  static float red_y = 0;
   msec_cnt++;
   
   // 3msに1回
@@ -175,7 +181,9 @@ void timerhandler(int i) {
       if(blobsize > 12) {
         printf("mark is found at (%.0f %.0f)\n",blobx,bloby); 
         pxset_visualselfposition(-blobx,-bloby);
-        flag++; 
+        x[flag] = blobx;
+        y[flag] = bloby; 
+        flag++;
       }
     }  
   count++;    
@@ -186,6 +194,17 @@ void timerhandler(int i) {
     //printf("red\n");
     if(flag > 6){
       printf("red detected\n");
+      red_x = x[flag - 1];
+      red_y = y[flag - 1];
+      for(k = 0;k < 10;k++){
+        //printf("x[%d]=%f,y[%d]=%f\n",k,x[k],k,y[k]);
+        //red_x = x[k];
+        //red_y = y[k];
+        x[k] = 0;
+        y[k] = 0; 
+      }
+      printf("red_x=%f,red_y=%f\n",red_x,red_y);    
+      //printf("red_x_ave=%f,red_y_ave=%f\n",red_x/(flag-1),red_y/(flag -1));    
       flag_red = 1;
     }
     colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
