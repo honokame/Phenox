@@ -175,6 +175,7 @@ void timerhandler(int i) {
   msec_cnt++;
   
   // 3msに1回
+  if(!(flag_red == 1 && flag_green == 1) || !(flag_blue == 1)) { 
   if(!(msec_cnt % 3)){
     // 機体の傾き、現在の自己位置、高度、特徴点の個数を出力
     //printf("%.2f %.2f %.2f | %.2f %.2f %.2f | %.2f | %d\n",st.degx,st.degy,st.degz,st.vision_tx,st.vision_ty,st.vision_tz,st.height,ftnum);
@@ -213,37 +214,60 @@ void timerhandler(int i) {
     flag = 0;
   }else if(count == 20) {
     if(flag > 6){
-      printf("blue detected\n");
-      blue_x = x[flag - 1];
-      blue_y = y[flag - 1];
+      printf("green detected\n");
+      green_x = x[flag - 1];
+      green_y = y[flag - 1];
       for(k = 0;k < 10;k++) {
         x[k] = 0;
         y[k] = 0;
       }
-      printf("blue_x=%f,blue_y=%f\n",blue_x,blue_y);    
-      flag_blue = 1;
+      printf("green_x=%f,green_y=%f\n",green_x,green_y);    
+      flag_green = 1;
+      if(flag_red == 0){
+        flag_green = 0;
+      }
     } 
     colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
     flag = 0;
   }else if(count == 30) {
     if(flag > 6){
-      printf("green detected\n");
-      green_x = x[flag - 1];
-      green_y = y[flag - 1];
+      printf("blue detected\n");
+      blue_x = x[flag - 1];
+      blue_y = y[flag - 1];
       for(k = 0;k < 10;k++){
         x[k] = 0;
         y[k] = 0;
       }
-      printf("green_x=%f,green_y=%f\n",green_x,green_y);
-      flag_green = 1;
+      printf("blue_x=%f,blue_y=%f\n",blue_x,blue_y);
+      flag_blue = 1;
+    }
+    if(flag_green == 0){
+      flag_red = 0;
     }
     colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
     flag = 0;
     count = 0; // カウンターをリセット
   }
 }
+}
   //static int prev_operatemode = PX_HALT; //停止状態
-  
+  if(flag_red == 1 && flag_green == 1) {
+    printf("arrow detected\n");
+    flag_red = 0;
+    flag_green = 0;
+    flag_blue = 0;
+    count = 0;
+    flag = 0;
+  }
+  if(flag_blue == 1) {
+    printf("goal detected\n");
+    exit(1);
+    //flag_red = 0;
+    //flag_green = 0;
+    //flag_blue = 0;
+    //count = 0;
+    //flag = 0;
+  }  
   // 上昇→ホバー状態の時
   if((prev_operatemode == PX_UP) && (pxget_operate_mode() == PX_HOVER)) {
     pxset_visioncontrol_xy(st.vision_tx,st.vision_ty); // 自己位置を追従、元の位置で飛行
@@ -279,7 +303,7 @@ void timerhandler(int i) {
 void colorchange(int *min_y,int *max_y,int *min_u,int *max_u,int *min_v,int *max_v) {
   switch(count / 10) {
     case 3: // red
-      printf("red\n");
+      //printf("red\n");
       *min_y = 75;
       *max_y = 110;
       *min_u = -40;
@@ -288,8 +312,8 @@ void colorchange(int *min_y,int *max_y,int *min_u,int *max_u,int *min_v,int *max
       *max_v = 70;
       break;
 
-    case 1: // blue
-      printf("blue\n");
+    case 2: // blue
+      //printf("blue\n");
       *min_y = 50;
       *max_y = 100;
       *min_u = 0;
@@ -298,8 +322,8 @@ void colorchange(int *min_y,int *max_y,int *min_u,int *max_u,int *min_v,int *max
       *max_v = 0;
       break;
 
-    case 2: // green
-      printf("green\n");
+    case 1: // green
+      //printf("green\n");
       *min_y = 0;
       *max_y = 255;
       *min_u = -127;
