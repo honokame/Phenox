@@ -168,6 +168,10 @@ void timerhandler(int i) {
   static int k = 0;
   static float red_x = 0;
   static float red_y = 0;
+  static float blue_x = 0;
+  static float blue_y = 0;
+  static float green_x = 0;
+  static float green_y = 0;
   msec_cnt++;
   
   // 3msに1回
@@ -190,8 +194,6 @@ void timerhandler(int i) {
   
   // 10回色を検知するごとに切り替える、赤→青→緑
   if(count == 10){
-    //colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
-    //printf("red\n");
     if(flag > 6){
       printf("red detected\n");
       red_x = x[flag - 1];
@@ -210,19 +212,29 @@ void timerhandler(int i) {
     colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
     flag = 0;
   }else if(count == 20) {
-    //colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
-    //printf("blue\n"); 
     if(flag > 6){
       printf("blue detected\n");
+      blue_x = x[flag - 1];
+      blue_y = y[flag - 1];
+      for(k = 0;k < 10;k++) {
+        x[k] = 0;
+        y[k] = 0;
+      }
+      printf("blue_x=%f,blue_y=%f\n",blue_x,blue_y);    
       flag_blue = 1;
     } 
     colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
     flag = 0;
   }else if(count == 30) {
-    //colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
-    //printf("green\n"); 
     if(flag > 6){
       printf("green detected\n");
+      green_x = x[flag - 1];
+      green_y = y[flag - 1];
+      for(k = 0;k < 10;k++){
+        x[k] = 0;
+        y[k] = 0;
+      }
+      printf("green_x=%f,green_y=%f\n",green_x,green_y);
       flag_green = 1;
     }
     colorchange(&min_y,&max_y,&min_u,&max_u,&min_v,&max_v);
